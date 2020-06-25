@@ -143,8 +143,8 @@ public extension UIScrollView {
     
     /// The distance the user must scroll past the content in this scroll view for the slingshot to engage.
     public var slingshotThreshold: CGFloat {
-        // Accommodate for smaller screens in landscape
-        bounds.height < 320 ? 70 : 110
+        // Accommodate for smaller vertical spaces (e.g. phone in landscape with navigation and tool bars, etc.)
+        bounds.height < 320 ? 50 : 90
     }
 
     /// Convenience getter for this scroll view's slingshot view.
@@ -183,8 +183,14 @@ public extension UIScrollView {
     /// Begins observing the scroll view's content offset to determine whether and when to slingshot.
     private func startObserving() {
         storage.scrollViewObservation = self.observe(\.contentOffset) { [weak self] scrollView, _ in
+            guard let self = self
+                else { return }
+                
             // Return early if we can't slingshot.
-            guard let self = self, self.canSlingshot else { return }
+            guard self.canSlingshot else {
+                self.hideSlingshotViewIfNeeded()
+                return
+            }
 
             // If the user is scrolling (if their finger is down inside of the scroll view)
             if scrollView.isTracking, scrollView.isDragging {
