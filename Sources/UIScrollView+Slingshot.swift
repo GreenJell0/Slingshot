@@ -22,7 +22,11 @@ public extension UIScrollView {
 
     /// The required height the content must be in relation to the scroll view itself in order for the slingshot to be available.
     /// This can be read as: "The content must be x times taller than the scroll view for the slingshot to be available."
-    private static let requiredHeightRatioForSlingshot = CGFloat(1.2)
+    /// The default value is 1.2.
+    public var requiredHeightRatioForSlingshot: CGFloat {
+        get { slingshotView.requiredHeightRatioForSlingshot }
+        set { slingshotView.requiredHeightRatioForSlingshot = newValue }
+    }
 
     // MARK: Supporting Types
 
@@ -31,6 +35,8 @@ public extension UIScrollView {
 
         let arrow = UIImageView()
         let label = UILabel()
+        
+        var requiredHeightRatioForSlingshot = CGFloat(1.2)
 
         override init(frame: CGRect = .zero) {
             super.init(frame: frame)
@@ -169,7 +175,7 @@ public extension UIScrollView {
 
     /// Whether the content is large enough to warrant a slingshot (as defined by `Self.requiredHeightRatioForSlingshot`.)
     private var isSlingshotAvailableByContentSize: Bool {
-        return contentSize.height >= Self.requiredHeightRatioForSlingshot * (bounds.height - contentInset.bottom)
+        return contentSize.height >= requiredHeightRatioForSlingshot * (bounds.height - contentInset.bottom)
     }
 
     /// Whether the scroll view is in a state where it can slingshot (based on its content size and zooming state.)
