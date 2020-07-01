@@ -1,0 +1,6 @@
+sudo: false
+language: swift
+osx_image: xcode11.5
+
+script:
+- pod lib lint --verbose
