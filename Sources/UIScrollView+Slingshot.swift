@@ -237,7 +237,7 @@ public extension UIScrollView {
             slingshotView.frame = CGRect(
                 x: 0,
                 // Position the slingshot view directly below the rest of the content.
-                y: contentSize.height,
+                y: contentSize.height + contentInset.bottom,
                 width: frame.width,
                 // Give the slingshot view the height of the threshold.
                 height: slingshotThreshold

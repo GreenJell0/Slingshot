@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "Slingshot"
-  s.version      = "1.0.3"
+  s.version      = "1.0.4"
   s.summary      = "Lightweight extension to UIScrollView that adds a pull up at the bottom of a UISCrollView, and slingshot back to the top!"
   s.homepage     = "https://github.com/GreenJell0/Slingshot"
   s.description  = <<-DESC
