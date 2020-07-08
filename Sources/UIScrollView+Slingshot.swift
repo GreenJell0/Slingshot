@@ -150,7 +150,14 @@ public extension UIScrollView {
     /// The distance the user must scroll past the content in this scroll view for the slingshot to engage.
     public var slingshotThreshold: CGFloat {
         // Accommodate for smaller vertical spaces (e.g. phone in landscape with navigation and tool bars, etc.)
-        bounds.height < 320 ? 50 : 90
+        switch bounds.height {
+        case ...320:
+            return 60
+        case CGFloat(320).nextUp...414:
+            return 100
+        default:
+            return 120
+        }
     }
 
     /// Convenience getter for this scroll view's slingshot view.
