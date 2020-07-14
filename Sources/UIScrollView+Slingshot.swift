@@ -85,6 +85,8 @@ public extension UIScrollView {
         var isSlingshotEnabled = false
         /// Backing storage for `UIScrollView.isSlingshotEngaged`.
         var isSlingshotEngaged = false
+        /// Backing storage for `UIScrollView.isBottomContentOffsetObscured`
+        var isBottomContentInsetObscured = false
         /// Backing storage to maintain a reference to the slingshot view.
         lazy private(set) var slingshotView = SlingshotView()
         /// Observation token for the scroll view's content offset.
@@ -123,6 +125,14 @@ public extension UIScrollView {
     public var slingshotTextColor: UIColor {
         get { slingshotView.label.textColor }
         set { slingshotView.label.textColor = newValue }
+    }
+    
+    /// For scrollviews with `contentInset.bottom` set to a nonzero value this controls where the slingshot view is positioned.
+    /// If `true` the slingshot is posiitioned right below the bottom of the content, within the `contentInset.bottom` space. This should be used if there is a view covering that space.
+    /// If `false` the slingshot is positioned below the `contentInset.bottom` space.
+    public var isBottomContentInsetObscured: Bool {
+        get { storage.isBottomContentInsetObscured }
+        set(isObscured) { storage.isBottomContentInsetObscured = isObscured }
     }
     
     /// Whether or not the slingshot is enabled on this scroll view. By default, the slingshot is disabled.
@@ -172,17 +182,17 @@ public extension UIScrollView {
 
     /// Whether the user has scrolled past the the content.
     private var isScrolledPastContentBottom: Bool {
-        return contentOffset.y > contentSize.height - bounds.height
+        return contentOffset.y > contentSize.height + contentInset.bottom - bounds.height
     }
 
     /// The distance the user has scroll past the content. This is a non-negative value.
     private var distancePastContentBottom: CGFloat {
-        return max(0, -(contentSize.height - bounds.height - contentOffset.y))
+        return max(0, -(contentSize.height + contentInset.bottom - bounds.height - contentOffset.y))
     }
 
     /// Whether the content is large enough to warrant a slingshot (as defined by `Self.requiredHeightRatioForSlingshot`.)
     private var isSlingshotAvailableByContentSize: Bool {
-        return contentSize.height >= requiredHeightRatioForSlingshot * (bounds.height - contentInset.bottom)
+        return contentSize.height + contentInset.bottom >= requiredHeightRatioForSlingshot * (bounds.height - contentInset.bottom)
     }
 
     /// Whether the scroll view is in a state where it can slingshot (based on its content size and zooming state.)
@@ -243,8 +253,8 @@ public extension UIScrollView {
         if slingshotView.superview != self {
             slingshotView.frame = CGRect(
                 x: 0,
-                // Position the slingshot view directly below the rest of the content.
-                y: contentSize.height + contentInset.bottom,
+                // Position the slingshot view below the rest of the content.
+                y: contentSize.height + (isBottomContentInsetObscured ? 0 : contentInset.bottom),
                 width: frame.width,
                 // Give the slingshot view the height of the threshold.
                 height: slingshotThreshold
