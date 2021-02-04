@@ -2,13 +2,14 @@
 //  Copyright © 2020 by GreenJell0. All rights reserved.
 //
 
+#if canImport(UIKit)
 import UIKit
 
 // MARK: - Slingshot
 
 /*
  Overview:
-
+ 
  This extension adds a "slingshot" behavior to any scroll view via `isSlingshotEnabled`. When enabled, if the user scrolls past the bottom of
  the content a certain amount (the "threshold") and releases, the scroll view will slingshot and scroll back to the top of the content. As they scroll past
  the content, a view (the slingshot view) appears and hints that this behavior is available and when they've scrolled sufficiently far. This behavior is
@@ -17,30 +18,30 @@ import UIKit
  */
 
 public extension UIScrollView {
-
+    
     // MARK: Constants
-
+    
     /// The required height the content must be in relation to the scroll view itself in order for the slingshot to be available.
     /// This can be read as: "The content must be x times taller than the scroll view for the slingshot to be available."
     /// The default value is 1.2.
-    public var requiredHeightRatioForSlingshot: CGFloat {
+    var requiredHeightRatioForSlingshot: CGFloat {
         get { slingshotView.requiredHeightRatioForSlingshot }
         set { slingshotView.requiredHeightRatioForSlingshot = newValue }
     }
-
+    
     // MARK: Supporting Types
-
+    
     /// The view that indicates that the slingshot is available and what its current state is.
     private final class SlingshotView: UIView {
-
+        
         let arrow = UIImageView()
         let label = UILabel()
         
         var requiredHeightRatioForSlingshot = CGFloat(1.2)
-
+        
         override init(frame: CGRect = .zero) {
             super.init(frame: frame)
-
+            
             label.font = .preferredFont(forTextStyle: .footnote)
             label.adjustsFontForContentSizeCategory = true
             
@@ -51,7 +52,7 @@ public extension UIScrollView {
             }
             
             arrow.setContentCompressionResistancePriority(.required, for: .horizontal)
-
+            
             let stack = UIStackView()
             stack.axis = .horizontal
             stack.alignment = .center
@@ -60,7 +61,7 @@ public extension UIScrollView {
             stack.addArrangedSubview(label)
             stack.translatesAutoresizingMaskIntoConstraints = false
             addSubview(stack)
-
+            
             NSLayoutConstraint.activate([
                 stack.centerXAnchor.constraint(equalTo: centerXAnchor),
                 stack.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor),
@@ -69,18 +70,18 @@ public extension UIScrollView {
                 stack.bottomAnchor.constraint(equalTo: bottomAnchor)
             ])
         }
-
+        
         required init?(coder aDecoder: NSCoder) {
             fatalError("init(coder:) has not been implemented")
         }
     }
-
+    
     /// Stores the properties necessary to execute the slingshot.
     /// Because the slingshot is implemented as an extension on UIScrollView it can't have any stored properites.
     /// Using a storage container like this allows us to store any needed properties as an associated object.
     private class Storage {
         static var key: UInt8 = 0
-
+        
         /// Backing storage for `UIScrollView.isSlingshotEnabled`.
         var isSlingshotEnabled = false
         /// Backing storage for `UIScrollView.isSlingshotEngaged`.
@@ -92,9 +93,9 @@ public extension UIScrollView {
         /// Observation token for the scroll view's content offset.
         var scrollViewObservation: NSKeyValueObservation?
     }
-
+    
     // MARK: Properties
-
+    
     /// Storage for slingshot properties. Accessing the storage for the first time will create and associate a new `Storage` container
     /// with this scroll view. Subsequent accesses will return the same instance of the container.
     private var storage: Storage {
@@ -104,25 +105,25 @@ public extension UIScrollView {
                 return existingStorage
             } else {
                 // Otherwise, create a new container and associate it with this scroll view via the setter.
-                storage = Storage()
-                return storage
+                self.storage = Storage()
+                return self.storage
             }
         }
-
+        
         set {
             // Update the associated storage container with this scroll view whenever the container is set.
             objc_setAssociatedObject(self, &Storage.key, newValue, .OBJC_ASSOCIATION_RETAIN)
         }
     }
-
+    
     /// The tint color for the slingshot arrow.
-    public var slingshotArrowTintColor: UIColor? {
+    var slingshotArrowTintColor: UIColor? {
         get { slingshotView.arrow.tintColor }
         set { slingshotView.arrow.tintColor = newValue }
     }
     
     /// The text color for the slingshot text.
-    public var slingshotTextColor: UIColor {
+    var slingshotTextColor: UIColor {
         get { slingshotView.label.textColor }
         set { slingshotView.label.textColor = newValue }
     }
@@ -130,17 +131,17 @@ public extension UIScrollView {
     /// For scrollviews with `contentInset.bottom` set to a nonzero value this controls where the slingshot view is positioned.
     /// If `true` the slingshot is posiitioned right below the bottom of the content, within the `contentInset.bottom` space. This should be used if there is a view covering that space.
     /// If `false` the slingshot is positioned below the `contentInset.bottom` space.
-    public var isBottomContentInsetObscured: Bool {
+    var isBottomContentInsetObscured: Bool {
         get { storage.isBottomContentInsetObscured }
         set(isObscured) { storage.isBottomContentInsetObscured = isObscured }
     }
     
     /// Whether or not the slingshot is enabled on this scroll view. By default, the slingshot is disabled.
-    public var isSlingshotEnabled: Bool {
+    var isSlingshotEnabled: Bool {
         get {
             return storage.isSlingshotEnabled
         }
-
+        
         set(isEnabled) {
             storage.isSlingshotEnabled = isEnabled
             if isEnabled {
@@ -158,7 +159,7 @@ public extension UIScrollView {
     }
     
     /// The distance the user must scroll past the content in this scroll view for the slingshot to engage.
-    public var slingshotThreshold: CGFloat {
+    var slingshotThreshold: CGFloat {
         // Accommodate for smaller vertical spaces (e.g. phone in landscape with navigation and tool bars, etc.)
         switch bounds.height {
         case ...320:
@@ -169,57 +170,57 @@ public extension UIScrollView {
             return 120
         }
     }
-
+    
     /// Convenience getter for this scroll view's slingshot view.
     private var slingshotView: SlingshotView { storage.slingshotView }
-
+    
     /// Whether the user has scrolled sufficiently far past the content (as defined by `Self.slingshotThreshold`) so that when they
     /// lift their finger, the slingshot will trigger, resetting the content offset to the top.
     private var isSlingshotEngaged: Bool {
         get { storage.isSlingshotEngaged }
         set { storage.isSlingshotEngaged = newValue }
     }
-
+    
     /// Whether the user has scrolled past the the content.
     private var isScrolledPastContentBottom: Bool {
         return contentOffset.y > contentSize.height + contentInset.bottom - bounds.height
     }
-
+    
     /// The distance the user has scroll past the content. This is a non-negative value.
     private var distancePastContentBottom: CGFloat {
         return max(0, -(contentSize.height + contentInset.bottom - bounds.height - contentOffset.y))
     }
-
+    
     /// Whether the content is large enough to warrant a slingshot (as defined by `Self.requiredHeightRatioForSlingshot`.)
     private var isSlingshotAvailableByContentSize: Bool {
         return contentSize.height + contentInset.bottom >= requiredHeightRatioForSlingshot * (bounds.height - contentInset.bottom)
     }
-
+    
     /// Whether the scroll view is in a state where it can slingshot (based on its content size and zooming state.)
     /// - Note: Even if `isSlingshotEnabled` is set to `true`, the slingshot will not be visible or engage if `canSlingshot` returns `false`.
     private var canSlingshot: Bool {
         return isSlingshotAvailableByContentSize && !isZooming && !isZoomBouncing
     }
-
+    
     // MARK: Methods
-
+    
     /// Begins observing the scroll view's content offset to determine whether and when to slingshot.
     private func startObserving() {
         storage.scrollViewObservation = self.observe(\.contentOffset) { [weak self] scrollView, _ in
             guard let self = self
-                else { return }
-                
+            else { return }
+            
             // Return early if we can't slingshot.
             guard self.canSlingshot else {
                 self.hideSlingshotViewIfNeeded()
                 return
             }
-
+            
             // If the user is scrolling (if their finger is down inside of the scroll view)
             if scrollView.isTracking, scrollView.isDragging {
                 // Engage the slingshot if they have scrolled sufficiently past the content, otherwise disengage.
                 self.isSlingshotEngaged = scrollView.distancePastContentBottom > self.slingshotThreshold
-
+                
                 // If the user has scrolled past the content
                 if scrollView.isScrolledPastContentBottom {
                     // Show and update the slingshot
@@ -232,7 +233,7 @@ public extension UIScrollView {
             } else if scrollView.isDecelerating, self.isSlingshotEngaged {
                 // The user isn't scrolling anymore (they've lifted their finger), and the scroll view has started to decelerate
                 // (which happens as the scroll view is released and rubberbands back to its resting position) while the slingshot was engaged.
-
+                
                 // Disengage the slingshot
                 self.isSlingshotEngaged = false
                 // Trigger the slingshot and scroll back to the top of the content
@@ -241,12 +242,12 @@ public extension UIScrollView {
             }
         }
     }
-
+    
     /// Stops observing the scroll view's content offset.
     private func stopObserving() {
         storage.scrollViewObservation = nil
     }
-
+    
     /// Adds and positions the slingshot view as a subview if it isn't already a subview.
     private func showSlingshotViewIfNeeded() {
         // Check that the slingshot view isn't already a subview so that we don't perform this unecessarily.
@@ -259,11 +260,11 @@ public extension UIScrollView {
                 // Give the slingshot view the height of the threshold.
                 height: slingshotThreshold
             )
-
+            
             addSubview(slingshotView)
         }
     }
-
+    
     /// Removes the slingshot view as a subview if it is a subview.
     private func hideSlingshotViewIfNeeded() {
         // Check that the slingshot view is a subview so that we don't perform this unecessarily.
@@ -271,18 +272,19 @@ public extension UIScrollView {
             slingshotView.removeFromSuperview()
         }
     }
-
+    
     /// Perform any updates to the slingshot view inside this method.
     /// Called when the user scrolls past the content (each time the content offset changes.)
     private func updateSlingshotView() {
         slingshotView.alpha = min(distancePastContentBottom / slingshotThreshold, 1.0)
-
+        
         self.slingshotView.label.text = self.isSlingshotEngaged
             ? NSLocalizedString("Release to scroll to the top", comment: "Message shown when the user scrolls way beyond the end of the content")
             : NSLocalizedString("Pull to scroll to the top", comment: "Message shown when the user scrolls beyond the end of the content")
-
+        
         UIView.animate(withDuration: 0.2, delay: 0, options: [.curveEaseInOut, .beginFromCurrentState], animations: {
             self.slingshotView.arrow.layer.transform = CATransform3DMakeRotation(.pi, self.isSlingshotEngaged ? 1 : 0, 0, 0)
         }, completion: { _ in })
     }
 }
+#endif
